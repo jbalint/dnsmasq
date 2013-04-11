@@ -398,8 +398,16 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
     ttl = daemon->max_cache_ttl;
 
   /* Don't log keys */
-  if (flags & (F_IPV4 | F_IPV6))
+  if (flags & (F_IPV4 | F_IPV6)) {
     log_query(flags | F_UPSTREAM, name, addr, NULL);
+    if (strstr(name, "oracle.com") || strstr(name, "oraclecorp.com")) {
+      my_syslog(LOG_INFO, "-> Setting up routing rule for %s, ip %s", name, daemon->addrbuff);
+      if (!fork()) {
+	my_syslog(LOG_INFO, "ip route add %s dev cscotun0 via %s", daemon->addrbuff, getenv("VPNIP"));
+	execl("/usr/sbin/ip", "/usr/sbin/ip", "route", "add", daemon->addrbuff, "dev", "cscotun0", "via", getenv("VPNIP"), NULL);
+      }
+    }
+  }
 
   /* if previous insertion failed give up now. */
   if (insert_error)

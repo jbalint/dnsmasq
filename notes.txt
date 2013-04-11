@@ -1,0 +1,7 @@
+#0  log_query (flags=65672, name=0x64d010 "music.wisc.edu", addr=0x7fffffffe310, arg=0x0) at cache.c:1341
+#1  0x0000000000403cbb in cache_insert (name=0x64d010 "music.wisc.edu", addr=0x7fffffffe310, now=1365629236, ttl=13461, flags=136) at cache.c:402
+#2  0x0000000000408ed2 in extract_addresses (header=0x64dcf0, qlen=48, name=0x64d010 "music.wisc.edu", now=1365629236, ipsets=0x0, is_sign=0, check_rebind=0, checking_disabled=0) at rfc1035.c:990
+#3  0x00000000004192d6 in process_reply (header=0x64dcf0, now=1365629236, server=0x64dc50, n=48, check_rebind=0, checking_disabled=0) at forward.c:516
+#4  0x000000000041976f in reply_query (fd=11, family=2, now=1365629236) at forward.c:635
+#5  0x00000000004203b5 in check_dns_listeners (set=0x7fffffffe6b0, now=1365629236) at dnsmasq.c:1331
+#6  0x000000000041f124 in main (argc=7, argv=0x7fffffffead8) at dnsmasq.c:867

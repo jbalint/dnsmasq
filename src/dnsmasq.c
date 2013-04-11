@@ -596,7 +596,7 @@ int main (int argc, char **argv)
   if (daemon->port == 0)
     my_syslog(LOG_INFO, _("started, version %s DNS disabled"), VERSION);
   else if (daemon->cachesize != 0)
-    my_syslog(LOG_INFO, _("started, version %s cachesize %d"), VERSION, daemon->cachesize);
+    my_syslog(LOG_INFO, _("started, version %s-JBALINT cachesize %d"), VERSION, daemon->cachesize);
   else
     my_syslog(LOG_INFO, _("started, version %s cache disabled"), VERSION);
   
