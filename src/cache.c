@@ -400,7 +400,11 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
   /* Don't log keys */
   if (flags & (F_IPV4 | F_IPV6)) {
     log_query(flags | F_UPSTREAM, name, addr, NULL);
-    if (strstr(name, "oracle.com") || strstr(name, "oraclecorp.com")) {
+    if (strstr(name, "oracle.com") ||
+	strstr(name, "oraclecorp.com") ||
+	strstr(name, "sun.com") ||
+	strstr(name, "java.net")
+	) {
       my_syslog(LOG_INFO, "-> Setting up routing rule for %s, ip %s", name, daemon->addrbuff);
       if (!fork()) {
 	my_syslog(LOG_INFO, "ip route add %s dev cscotun0 via %s", daemon->addrbuff, getenv("VPNIP"));

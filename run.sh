@@ -32,4 +32,6 @@ sudo bash -c "echo nameserver 127.0.0.1 > /etc/resolv.conf"
 sudo bash -c "echo $INOTIFYLIMIT > /proc/sys/fs/inotify/max_user_watches"
 
 # switch over to the dnsmasq
-sudo VPNIP=$VPNIP src/dnsmasq -o --server=192.168.1.1 --server=/oracle.com/$NSIP --server=/oraclecorp.com/$NSIP --log-facility=- --no-daemon --log-queries --no-resolv
+sudo VPNIP=$VPNIP src/dnsmasq -o --server=192.168.1.1 \
+    --server=/oracle.com/oraclecorp.com/sun.com/java.net/$NSIP \
+    --log-facility=- --no-daemon --log-queries --no-resolv #--domain-needed
