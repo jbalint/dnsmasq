@@ -393,6 +393,7 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
   union bigname *big_name = NULL;
   int freed_all = flags & F_REVERSE;
   int free_avail = 0;
+  const char *route_if = getenv("TUNIF");
 
   if (daemon->max_cache_ttl != 0 && daemon->max_cache_ttl < ttl)
     ttl = daemon->max_cache_ttl;
@@ -405,10 +406,16 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
 	strstr(name, "sun.com") ||
 	strstr(name, "java.net")
 	) {
-      my_syslog(LOG_INFO, "-> Setting up routing rule for %s, ip %s", name, daemon->addrbuff);
-      if (!fork()) {
-	my_syslog(LOG_INFO, "ip route add %s dev cscotun0 via %s", daemon->addrbuff, getenv("VPNIP"));
-	execl("/usr/sbin/ip", "/usr/sbin/ip", "route", "add", daemon->addrbuff, "dev", "cscotun0", "via", getenv("VPNIP"), NULL);
+	  if (flags & F_NEG) {
+		my_syslog(LOG_INFO, "-> Skipping F_NEG %s", name);
+      } else if (!strcmp(daemon->addrbuff, getenv("VPNDNS"))) {
+        my_syslog(LOG_INFO, "-> Skipping presumably bad reply for %s, ip %s", name, daemon->addrbuff);
+      } else {
+        my_syslog(LOG_INFO, "-> Setting up routing rule for %s, ip %s", name, daemon->addrbuff);
+        if (!fork()) {
+          my_syslog(LOG_INFO, "ip route add %s dev %s via %s", daemon->addrbuff, route_if, getenv("VPNIP"));
+          execl("/usr/sbin/ip", "/usr/sbin/ip", "route", "add", daemon->addrbuff, "dev", route_if, "via", getenv("VPNIP"), NULL);
+        }
       }
     }
   }
