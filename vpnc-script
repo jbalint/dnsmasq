@@ -652,7 +652,9 @@ do_connect() {
 				set_network_route "$i" "255.255.255.255" "32"
 		done
 	elif [ -n "$INTERNAL_IP4_ADDRESS" ]; then
-		set_default_route
+		# Skip this leaving the normal default route
+		#set_default_route
+		:
 	fi
 	if [ -n "$CISCO_IPV6_SPLIT_INC" ]; then
 		i=0
@@ -676,8 +678,45 @@ do_connect() {
 	fi
 
 	if [ -n "$INTERNAL_IP4_DNS" ]; then
-		$MODIFYRESOLVCONF
+		#$MODIFYRESOLVCONF
+		
+		# get current DNS server to proxy with local DNS server
+		LAN_DNS=$(grep nameserver /etc/resolv.conf | head -n 1 | gawk '{print $2}')
+		# backup resolv.conf
+		cp -- /etc/resolv.conf "$RESOLV_CONF_BACKUP"
+		
+		# need so original is restored upon disconnect
+		echo "#@VPNC_GENERATED@" > /etc/resolv.conf
+		# rely on local DNS server
+		echo "nameserver 127.0.0.1" >> /etc/resolv.conf
+		
+		echo "INTERNAL_IP4_DNS = $INTERNAL_IP4_DNS"
+		echo "INTERNAL_IP4_ADDRESS = $INTERNAL_IP4_ADDRESS"
+		echo "LAN_DNS = $LAN_DNS"
+		
+		# Add routes to tunnel for VPN DNS ip address
+		echo "Setting up routes for VPN DNS"
+		echo $INTERNAL_IP4_DNS | tr ' ' '\n' | while read i ; do
+			echo "ip route add $i dev tun0 via $INTERNAL_IP4_ADDRESS"
+			ip route add $i dev tun0 via $INTERNAL_IP4_ADDRESS
+		done
+		
+		echo "Starting DNS masq"
+		# Make sure we have only one DNS IP
+		# (also used as env var in dnsmasq)
+		export VPNDNS=${INTERNAL_IP4_DNS%% *}
+		# Tunnel for setting up new routes
+		export TUNIF=tun0
+		# Our IP on the VPN
+		export VPNIP=$INTERNAL_IP4_ADDRESS
+		# Start local DNS server in background
+		# - provide tunnel interface and VPN IP address
+		# - LAN_DNS is the main DNS server to proxy to
+		src/dnsmasq -o --server=$LAN_DNS \
+			--server=/oracle.com/oraclecorp.com/sun.com/java.net/$VPNDNS \
+			--log-facility=- --no-daemon --log-queries --no-resolv &
 	fi
+
 }
 
 do_disconnect() {
@@ -727,6 +766,8 @@ do_disconnect() {
 		$RESTORERESOLVCONF
 	fi
 	destroy_tun_device
+
+	killall dnsmasq
 }
 
 #### Main
