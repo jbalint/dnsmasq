@@ -401,10 +401,10 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
   /* Don't log keys */
   if (flags & (F_IPV4 | F_IPV6)) {
     log_query(flags | F_UPSTREAM, name, addr, NULL);
-    if (strstr(name, "oracle.com") ||
+    if (name && (strstr(name, "oracle.com") ||
 	strstr(name, "oraclecorp.com") ||
 	strstr(name, "sun.com") ||
-	strstr(name, "java.net")
+				 strstr(name, "java.net"))
 	) {
 	  if (flags & F_NEG) {
 		my_syslog(LOG_INFO, "-> Skipping F_NEG %s", name);
